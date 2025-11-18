@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:cosmic_havoc/components/asteroid.dart';
 import 'package:cosmic_havoc/components/player.dart';
+import 'package:cosmic_havoc/components/shoot_button.dart';
 import 'package:flame/components.dart';
 import 'package:flame/flame.dart'; //este paquete sirve para configurar el juego y el dispositivo
 import 'package:flame/game.dart';
@@ -7,6 +10,9 @@ import 'package:flame/game.dart';
 class MyGame extends FlameGame {
   late Player player;
   late JoystickComponent joystick;
+  late SpawnComponent _asteroidSpawner;
+  final Random _random = Random();
+  late ShootButton _shootButton; 
 
   @override
   FutureOr<void> onLoad() async {
@@ -20,10 +26,14 @@ class MyGame extends FlameGame {
 
   void startGame() async{
     await _createJoystick();
-    _createPlayer();
+    await _createPlayer();
+    _createShootButton();
+    _createAsteroidSpawner();
+
+    
 
   }
-  void _createPlayer(){
+  Future<void> _createPlayer() async{
     player = Player()
     ..anchor = Anchor.center
     ..position = Vector2(size.x /2, size.y * 0.8);
@@ -44,6 +54,33 @@ class MyGame extends FlameGame {
       priority: 10,
     );
     add(joystick);
-      
+    
   }
+
+  void _createShootButton() {
+    _shootButton = ShootButton()
+    ..anchor = Anchor.bottomRight
+    ..position = Vector2(size.x - 20, size.y - 20)
+    ..priority = 10;
+    add(_shootButton);
+  }
+
+  void _createAsteroidSpawner() { //est es para crear los asteroides de forma periódica y para que aparezcan en posiciones aleatorias en la parte superior de la pantalla
+    _asteroidSpawner = SpawnComponent.periodRange(
+      factory: (index) => Asteroid(position: _generateAsteroidPosition()),
+      minPeriod: 0.7, 
+      maxPeriod: 1.2,
+      selfPositioning: true, //esto es para que el spawner use su propia posición y para generar los asteroides
+    );
+    add(_asteroidSpawner);
+  }
+
+
+  Vector2 _generateAsteroidPosition() {
+    return Vector2(
+    10 + _random.nextDouble() * (size.x - 10 * 2), 
+    -100, 
+    ); // Posición inicial justo fuera de la pantalla
+  }
+
 }

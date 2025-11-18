@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:ui';
 
+import 'package:cosmic_havoc/components/laser.dart';
 import 'package:cosmic_havoc/my_game.dart';
 import 'package:flame/components.dart';
 
 
 class Player extends SpriteComponent with HasGameReference<MyGame>{
+  bool _isShooting = false;
   @override
   FutureOr<void> onLoad() async{
     sprite = await game.loadSprite('player_blue_on0.png'); 
@@ -25,6 +27,12 @@ class Player extends SpriteComponent with HasGameReference<MyGame>{
 
 
     _handleScreenBounds(); //esto es para que el jugador no se salga de la pantalla, es una funcion 
+
+
+
+    if (_isShooting){
+      _fireLaser();
+    }
   }
 
   void _handleScreenBounds() {
@@ -46,4 +54,19 @@ class Player extends SpriteComponent with HasGameReference<MyGame>{
     }
 
   }
+
+  void startShooting() {
+    _isShooting = true;
+  }
+
+  void stopShooting() {
+    _isShooting = false;
+  }
+
+  void _fireLaser() {
+    game.add(
+      Laser(position: position.clone() + Vector2(0, -size.y / 2)),
+    );
+  }
+
 }
