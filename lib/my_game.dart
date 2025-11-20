@@ -4,10 +4,11 @@ import 'package:cosmic_havoc/components/asteroid.dart';
 import 'package:cosmic_havoc/components/player.dart';
 import 'package:cosmic_havoc/components/shoot_button.dart';
 import 'package:flame/components.dart';
+import 'package:flame/events.dart';
 import 'package:flame/flame.dart'; //este paquete sirve para configurar el juego y el dispositivo
 import 'package:flame/game.dart';
 
-class MyGame extends FlameGame {
+class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDetection {
   late Player player;
   late JoystickComponent joystick;
   late SpawnComponent _asteroidSpawner;

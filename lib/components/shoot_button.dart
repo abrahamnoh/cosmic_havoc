@@ -17,12 +17,19 @@ class ShootButton extends SpriteComponent with HasGameReference<MyGame>, TapCall
   void onTapDown(TapDownEvent event) {
     
     super.onTapDown(event);
+
     game.player.startShooting();
   }
 
   @override
   void onTapUp(TapUpEvent event) {
     super.onTapUp(event);
+    game.player.stopShooting();
+  }
+
+  @override
+  void onTapCancel(TapCancelEvent event) {//esto lo agregamos para que si el jugador mueve el dedo fuera del boton deje de disparar
+    super.onTapCancel(event);
     game.player.stopShooting();
   }
 }
