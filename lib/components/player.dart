@@ -3,8 +3,11 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:cosmic_havoc/components/asteroid.dart';
+import 'package:cosmic_havoc/components/bomb.dart';
 import 'package:cosmic_havoc/components/explosion.dart';
 import 'package:cosmic_havoc/components/laser.dart';
+import 'package:cosmic_havoc/components/pickup.dart';
+import 'package:cosmic_havoc/components/powerup.dart';
 import 'package:cosmic_havoc/my_game.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
@@ -21,12 +24,19 @@ class Player extends SpriteAnimationComponent
   bool _isDestroyed = false;
   final Random _random = Random();
   late Timer _explosionTimer;
+  late Timer _laserPowerupTimer;
+  Powerup? activePowerup;
 
   Player(){
     _explosionTimer = Timer(
       0.1,
       onTick: _createRandomExplosion,
       repeat: true,
+      autoStart: false,
+    );
+
+    _laserPowerupTimer = Timer(
+      10.0,
       autoStart: false,
     );
   }
@@ -56,9 +66,15 @@ class Player extends SpriteAnimationComponent
           _explosionTimer.update(dt);
           return;
         }
+
+    if (_laserPowerupTimer.isRunning()) {
+      _laserPowerupTimer.update(dt);
+    }
+
+
     // combine the joystick input with the keyboard movement y en español: combina la entrada del joystick con el movimiento del teclado
     final Vector2 movement = game.joystick.relativeDelta + _keyboardMovenment;
-
+    position += movement.normalized() * 200 * dt;
 
     // Movimiento del jugador basado en el joystick
     position += movement.normalized() * 200 * dt; // esto es para mover el jugador a una velocidad de 200 pixels por segundo
@@ -118,6 +134,20 @@ class Player extends SpriteAnimationComponent
     game.add(
       Laser(position: position.clone() + Vector2(0, -size.y / 2)),
     );
+
+    if(_laserPowerupTimer.isRunning()){
+      game.add(
+        Laser(position: position.clone() + Vector2(0, -size.y / 2),
+        angle: 15 * degrees2Radians),
+      );
+
+      game.add(
+        Laser(position: position.clone() + Vector2(0, -size.y / 2),
+        angle: -15 * degrees2Radians),
+      );
+    }
+
+
   }
 
   void _handleDestruction() async{
@@ -179,7 +209,29 @@ class Player extends SpriteAnimationComponent
     if (_isDestroyed) return;
 
     if (other is Asteroid){
-      _handleDestruction();
+
+      if (activePowerup == null)_handleDestruction();
+    } else if (other is Pickup){
+      other.removeFromParent();
+      game.incrementScore(1);
+
+      switch (other.pickupType){
+        case PickupType.laser:
+          _laserPowerupTimer.start();
+          break;
+        case PickupType.bomb:
+        game.add(Bomb(position: position.clone())); 
+          // Implement bomb pickup effect here
+          break;
+        case PickupType.powerup:
+          if (activePowerup != null) {
+            activePowerup!.removeFromParent();
+          }
+          activePowerup = Powerup();
+          add(activePowerup!);
+          break;
+      }
+      // Ignorar colisiones con los pickups
     }
   }
 

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:cosmic_havoc/components/asteroid.dart';
+import 'package:cosmic_havoc/components/pickup.dart';
 import 'package:cosmic_havoc/components/player.dart';
 import 'package:cosmic_havoc/components/shoot_button.dart';
 import 'package:flame/components.dart';
@@ -14,6 +15,7 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
   late Player player;
   late JoystickComponent joystick;
   late SpawnComponent _asteroidSpawner;
+  late SpawnComponent _pickupSpawner;
   final Random _random = Random();
   late ShootButton _shootButton; 
   int _score = 0; // esto es para llevar la cuenta de la puntuación del jugador
@@ -37,6 +39,7 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
     await _createPlayer();
     _createShootButton();
     _createAsteroidSpawner();
+    _createPickupSpawner();
     _createScoreDisplay();
 
     
@@ -82,6 +85,27 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
       selfPositioning: true, //esto es para que el spawner use su propia posición y para generar los asteroides
     );
     add(_asteroidSpawner);
+  }
+
+  void _createPickupSpawner() { //est es para crear los asteroides de forma periódica y para que aparezcan en posiciones aleatorias en la parte superior de la pantalla
+    _pickupSpawner = SpawnComponent.periodRange(
+      factory: (index) => Pickup(
+        position: _generateSpawnPosition(),
+        pickupType: 
+        PickupType.values[_random.nextInt(PickupType.values.length)],
+        ),
+      minPeriod: 5.0, 
+      maxPeriod: 10.0,
+      selfPositioning: true, //esto es para que el spawner use su propia posición y para generar los asteroides
+    );
+    add(_pickupSpawner);
+  }
+
+  Vector2 _generateSpawnPosition() {
+    return Vector2(
+    10 + _random.nextDouble() * (size.x - 10 * 2), 
+    -100, 
+    ); // Posición inicial justo fuera de la pantalla
   }
 
 
@@ -132,5 +156,7 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
     );
     _scoreDisplay.add(popEffect);
   }
+
+  void _createStars(){}
 
 }

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:cosmic_havoc/components/asteroid.dart';
 import 'package:cosmic_havoc/my_game.dart';
@@ -6,7 +7,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 class Laser extends SpriteComponent with HasGameReference<MyGame>,CollisionCallbacks {
-  Laser({required super.position}) 
+  Laser({required super.position, super.angle = 0.0}) 
   : super(
     anchor: Anchor.center,
     priority: -1, 
@@ -22,8 +23,8 @@ class Laser extends SpriteComponent with HasGameReference<MyGame>,CollisionCallb
     return super.onLoad();
   }
   @override
-  void update(double dt) {
-    position.y -= 500 * dt;
+  void update(double dt) { // esto es para mover el láser hacia arriba y eliminarlo si sale de la pantalla
+    position += Vector2(sin(angle), -cos(angle)) * 500 *dt; //esto es para mover el láser en la dirección que apunta
 
     // remove the laser from the game 
     if (position.y < -size.y / 2) {
