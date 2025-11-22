@@ -4,9 +4,11 @@ import 'package:cosmic_havoc/components/asteroid.dart';
 import 'package:cosmic_havoc/components/player.dart';
 import 'package:cosmic_havoc/components/shoot_button.dart';
 import 'package:flame/components.dart';
+import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
 import 'package:flame/flame.dart'; //este paquete sirve para configurar el juego y el dispositivo
 import 'package:flame/game.dart';
+import 'package:flutter/material.dart';
 
 class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDetection {
   late Player player;
@@ -14,12 +16,17 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
   late SpawnComponent _asteroidSpawner;
   final Random _random = Random();
   late ShootButton _shootButton; 
+  int _score = 0; // esto es para llevar la cuenta de la puntuación del jugador
+  late TextComponent _scoreDisplay; // esto es para mostrar la puntuación en pantalla
+
 
   @override
   FutureOr<void> onLoad() async {
      
     await Flame.device.fullScreen();//esto es para que el juego ocupe toda la pantalla y no se vean barras negras
     await Flame.device.setPortrait();// esto es para que el juego se vea en modo vertical
+
+    
     startGame();
 
     return super.onLoad();
@@ -30,6 +37,7 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
     await _createPlayer();
     _createShootButton();
     _createAsteroidSpawner();
+    _createScoreDisplay();
 
     
 
@@ -82,6 +90,47 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
     10 + _random.nextDouble() * (size.x - 10 * 2), 
     -100, 
     ); // Posición inicial justo fuera de la pantalla
+  }
+
+  void _createScoreDisplay(){
+    _score = 0;
+    _scoreDisplay = TextComponent(
+      text: '0',
+      anchor: Anchor.topCenter,
+      position: Vector2(size.x / 2, 20),
+      priority: 10,
+      textRenderer: TextPaint(
+        style: const TextStyle(
+          color: Colors.white,
+          fontSize: 48,
+          fontWeight: FontWeight.bold,
+          shadows: [
+            Shadow(
+              blurRadius: 4.0,
+              color: Colors.black,
+              offset: Offset(2.0, 2.0),
+            ),
+          ],
+        ),
+      ),
+    );
+    add(_scoreDisplay);
+  }
+
+
+  void incrementScore(int amount){
+    _score += amount;
+    _scoreDisplay.text = _score.toString();
+
+    final ScaleEffect popEffect = ScaleEffect.to(
+      Vector2.all(1.2),
+      EffectController(
+        duration: 0.1,
+        alternate: true,
+        curve: Curves.easeInOut,
+      ),
+    );
+    _scoreDisplay.add(popEffect);
   }
 
 }

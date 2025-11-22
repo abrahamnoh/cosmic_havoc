@@ -81,13 +81,19 @@ class Asteroid extends SpriteComponent with HasGameReference<MyGame> {
   void takeDamage(){ // estio es para que el asteroide reciba daño y desaparezca cuando su salud llegue a 0
     _health--;
     if (_health <= 0){
+      game.incrementScore(2);
       removeFromParent();
       _createExplosion();
+      _splintAsteroid();
     } else {
+      game.incrementScore(1);
       _flashWhite();
       _applyKnockback();
     }
   }
+
+
+
 
   void _flashWhite(){
     final ColorEffect flashEffect = ColorEffect(
@@ -131,6 +137,17 @@ class Asteroid extends SpriteComponent with HasGameReference<MyGame> {
       explosionType: ExplosionType.dust,
     );
     game.add(explosion);
+  }
+
+  void _splintAsteroid(){
+    if (size.x <= _maxSize / 3) return;
+    for(int i = 0; i < 3; i++){
+      final Asteroid fragment = Asteroid(
+        position: position.clone(),
+        size: size.x - _maxSize / 3,
+      );
+      game.add(fragment);
+    }
   }
  
 }
