@@ -26,6 +26,7 @@ class Player extends SpriteAnimationComponent
   late Timer _explosionTimer;
   late Timer _laserPowerupTimer;
   Powerup? activePowerup;
+  late String _color;
 
   Player(){
     _explosionTimer = Timer(
@@ -44,6 +45,7 @@ class Player extends SpriteAnimationComponent
 
   @override
   FutureOr<void> onLoad() async{
+    _color = game.playerColors[game.playerColorIndex];
    animation = await _loadPlayerAnimation();
 
 
@@ -94,8 +96,8 @@ class Player extends SpriteAnimationComponent
   Future<SpriteAnimation> _loadPlayerAnimation() async {
     return SpriteAnimation.spriteList(
       [
-        await game.loadSprite('player_blue_on0.png'),
-        await game.loadSprite('player_blue_on1.png'),
+        await game.loadSprite('player_${_color}_on0.png'),
+        await game.loadSprite('player_${_color}_on1.png'),
       ], 
     stepTime: 0.1,
     loop: true,
@@ -153,7 +155,7 @@ class Player extends SpriteAnimationComponent
   void _handleDestruction() async{
     animation = SpriteAnimation.spriteList(
       [
-        await game.loadSprite('player_blue_off.png'),
+        await game.loadSprite('player_${_color}_off.png'),
       ],
       stepTime: double.infinity,
     );
@@ -174,7 +176,9 @@ class Player extends SpriteAnimationComponent
       EffectController(duration: 3.0),
     ));
 
-    add(RemoveEffect(delay: 4.0));//esto es para eliminar el jugador después de 4 segundos
+    add(RemoveEffect(delay: 4.0,
+    onComplete: game.playerDied,
+    ));//esto es para eliminar el jugador después de 4 segundos
     
     _isDestroyed = true;
 

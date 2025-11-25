@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:cosmic_havoc/components/asteroid.dart';
+import 'package:cosmic_havoc/components/audio_manager.dart';
 import 'package:cosmic_havoc/components/pickup.dart';
 import 'package:cosmic_havoc/components/player.dart';
 import 'package:cosmic_havoc/components/shoot_button.dart';
+import 'package:cosmic_havoc/components/star.dart';
 import 'package:flame/components.dart';
 import 'package:flame/effects.dart';
 import 'package:flame/events.dart';
@@ -20,7 +22,9 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
   late ShootButton _shootButton; 
   int _score = 0; // esto es para llevar la cuenta de la puntuación del jugador
   late TextComponent _scoreDisplay; // esto es para mostrar la puntuación en pantalla
-
+  final List<String> playerColors = ['blue', 'red', 'green', 'purple'];
+  int playerColorIndex = 0;
+  late final AudioManager audioManager;
 
   @override
   FutureOr<void> onLoad() async {
@@ -28,8 +32,15 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
     await Flame.device.fullScreen();//esto es para que el juego ocupe toda la pantalla y no se vean barras negras
     await Flame.device.setPortrait();// esto es para que el juego se vea en modo vertical
 
+    //inicializar el gestor de audio y reproducir la música
+    audioManager = AudioManager();
+    await add(audioManager);
+    audioManager.playMusic();
+
     
-    startGame();
+    _createStars();
+
+   
 
     return super.onLoad();
   }
@@ -79,7 +90,7 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
 
   void _createAsteroidSpawner() { //est es para crear los asteroides de forma periódica y para que aparezcan en posiciones aleatorias en la parte superior de la pantalla
     _asteroidSpawner = SpawnComponent.periodRange(
-      factory: (index) => Asteroid(position: _generateAsteroidPosition()),
+      factory: (index) => Asteroid(position: _generateSpawnPosition()),
       minPeriod: 0.7, 
       maxPeriod: 1.2,
       selfPositioning: true, //esto es para que el spawner use su propia posición y para generar los asteroides
@@ -109,12 +120,7 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
   }
 
 
-  Vector2 _generateAsteroidPosition() {
-    return Vector2(
-    10 + _random.nextDouble() * (size.x - 10 * 2), 
-    -100, 
-    ); // Posición inicial justo fuera de la pantalla
-  }
+  
 
   void _createScoreDisplay(){
     _score = 0;
@@ -129,10 +135,10 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
           fontSize: 48,
           fontWeight: FontWeight.bold,
           shadows: [
-            Shadow(
-              blurRadius: 4.0,
+           Shadow(
               color: Colors.black,
-              offset: Offset(2.0, 2.0),
+              offset: Offset(2, 2),
+              blurRadius: 2,
             ),
           ],
         ),
@@ -142,11 +148,11 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
   }
 
 
-  void incrementScore(int amount){
+  void incrementScore(int amount){ //esto es para incrementar la puntuación del jugador
     _score += amount;
     _scoreDisplay.text = _score.toString();
 
-    final ScaleEffect popEffect = ScaleEffect.to(
+    final ScaleEffect popEffect = ScaleEffect.to(//esto es para crear un efecto de escala cuando se incrementa la puntuación
       Vector2.all(1.2),
       EffectController(
         duration: 0.1,
@@ -157,6 +163,54 @@ class MyGame extends FlameGame with HasKeyboardHandlerComponents, HasCollisionDe
     _scoreDisplay.add(popEffect);
   }
 
-  void _createStars(){}
+  void _createStars(){
+    for (int i = 0; i < 50; i++){
+      add(Star()..priority = -10);
+    }
+  }
+
+  void playerDied(){
+    overlays.add('GameOver');
+    pauseEngine();
+  }
+
+  void restartGame() { //esto es para reiniciar el juego y poner todo en su estado inicial
+    // remove any asteroids and pickups that are currently in the game
+    children.whereType<PositionComponent>().forEach((component) {
+      if (component is Asteroid || component is Pickup) {
+        remove(component);
+      }
+    });
+
+    // reset the asteroid and pickup spawners
+    _asteroidSpawner.timer.start();
+    _pickupSpawner.timer.start();
+
+    // reset the score to 0
+    _score = 0;
+    _scoreDisplay.text = '0';
+
+    // create a new player sprite
+    _createPlayer();
+
+    resumeEngine();
+  }
+
+  void quitGame(){
+    //remove everything except the stars y en español es para quitar todo menos las estrellas
+    children.whereType<PositionComponent>().forEach((component) {
+      if (component is! Star) {
+        remove(component);
+      }
+    });
+
+    remove(_asteroidSpawner);
+    remove(_pickupSpawner);
+
+    //show the title overlay y en español es para mostrar la superposición del título
+    overlays.add('Title');
+
+    resumeEngine();
+  }
 
 }

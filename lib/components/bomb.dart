@@ -1,3 +1,5 @@
+
+
 import 'dart:async';
 
 import 'package:cosmic_havoc/components/asteroid.dart';
@@ -9,46 +11,43 @@ import 'package:flutter/widgets.dart';
 
 class Bomb extends SpriteComponent
     with HasGameReference<MyGame>, CollisionCallbacks {
-      Bomb({required super.position})
-       : super(
-        size: Vector2.all(1), 
-        anchor: Anchor.center,
-        priority: -1,
+  Bomb({required super.position})
+      : super(
+          size: Vector2.all(1),
+          anchor: Anchor.center,
+          priority: -1,
         );
 
-
-       @override
+  @override
   FutureOr<void> onLoad() async {
-    
-      sprite = await game.loadSprite('bomb.png');
 
-      add(CircleHitbox(isSolid: true));
+    sprite = await game.loadSprite('bomb.png');
 
-      add(SequenceEffect([
-        SizeEffect.to(
-          Vector2.all(800),
-          EffectController(
-            duration: 1.0,
-            curve: Curves.easeInOut,
+    add(CircleHitbox(isSolid: true));
 
-          ),
+    add(SequenceEffect([
+      SizeEffect.to(
+        Vector2.all(800),
+        EffectController(
+          duration: 1.0,
+          curve: Curves.easeInOut,
         ),
-          OpacityEffect.fadeOut(
-            EffectController(duration: 0.5),
-          ),
-          RemoveEffect(),
-      ]));
-      return super.onLoad();
-    }
+      ),
+      OpacityEffect.fadeOut(
+        EffectController(duration: 0.5),
+      ),
+      RemoveEffect(),
+    ]));
 
-     @override 
-    void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
+    return super.onLoad();
+  }
+
+  @override
+  void onCollision(Set<Vector2> intersectionPoints, PositionComponent other) {
     super.onCollision(intersectionPoints, other);
-    if (other is Asteroid){
-      other.removeFromParent();
+
+    if (other is Asteroid) {
+      other.takeDamage();
     }
-
   }
-
-    
-  }
+}
